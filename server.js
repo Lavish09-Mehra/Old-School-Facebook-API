@@ -1,3 +1,6 @@
+//One more important thing you can also insert multer for image and video
+//and store that in ./media folder to make this project more interesting
+
 import 'dotenv/config';
 import express from 'express';
 import mongoose from 'mongoose';
