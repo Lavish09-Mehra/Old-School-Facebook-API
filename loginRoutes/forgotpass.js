@@ -5,7 +5,7 @@ import { User } from '../DataSchema/usersSchema.js';
 import { verifyToken } from './login.js';
 
 import bcrypt from 'bcrypt';
-
+//forgot pass and can change the pass
 Forgot.put('/forgot-password', verifyToken ,async(req, res) => {
     try{
     const { username, email, newpassword } = req.body
