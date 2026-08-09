@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 const postSchema = new mongoose.Schema({
-    username: {
+    username: {    //username for the post so can see the post by username
         type: String,
         required: true
     },
@@ -9,7 +9,7 @@ const postSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    hastags:{
+    hastags:{    //can insert multiple hashtags and mistake is typo of hashtag if you are copying just correct 
         type: [String],
         required: true
     },
