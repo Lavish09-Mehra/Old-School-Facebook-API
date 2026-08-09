@@ -32,9 +32,9 @@ app.get('/', (req, res) => {
   });
 });
 
-app.use(signupRoute);
-app.use(loginRoute);
-app.use(forgotRoute);
-app.use(postRoute);
-app.use(liked);
-app.use(cmnt);
+app.use(signupRoute);//sign-up
+app.use(loginRoute);//login 
+app.use(forgotRoute);//forgot password route
+app.use(postRoute);//post and see post (by Post id and profile)
+app.use(liked);//likes on the post 
+app.use(cmnt);//commnets on the post
