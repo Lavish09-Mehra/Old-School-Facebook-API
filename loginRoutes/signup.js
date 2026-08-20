@@ -30,10 +30,11 @@ route.post('/signup', async(req, res) => {
         email,
         password: hashedPass
     })
-    const result = await userdetails.save()
+    const result = await userdetails.save();
+    const { password: _password, ...safeUser } = result.toObject();
     return res.status(201).json({
         message: 'Succesfully Created a account On Old-School Facebook API..',
-        user: result
+        user: safeUser
     })
     }
     catch(err){

@@ -75,7 +75,7 @@ pst.get('/post-of/:username', verifyToken, async(req, res) => {
 pst.get('/me', verifyToken, async(req, res) => {
     try{
         const myprofile = await User.findOne({
-            username: req.user.usename
+            username: req.user.username
         });
         const myposts = await Post.find({
             username: req.user.username
