@@ -254,11 +254,13 @@ The `username` is taken from your token - you can't fake someone else's post.
 ### 6. Get the Feed
 
 ```http
-GET /feed
+GET /feed?page=1&limit=10
 Authorization: Bearer <your-token>
 ```
 
-**Response `200 OK`** - an array of every post, newest and oldest together.
+**Query params** - both optional (defaults: `page=1`, `limit=10`).
+
+**Response `200 OK`** - one page of posts, newest first, plus pagination metadata.
 
 ```json
 {
@@ -270,9 +272,15 @@ Authorization: Bearer <your-token>
       "caption": "hi everyone",
       "_id": "66c2..."
     }
-  ]
+  ],
+  "page": 1,
+  "limit": 10,
+  "total": 37,
+  "totalPages": 4
 }
 ```
+
+Use `page` to walk the feed (e.g. `?page=2` for the next page).
 
 **Errors:** `404` no posts yet
 

@@ -37,8 +37,19 @@ pst.post('/create-post', verifyToken, async(req, res) => {
 
 pst.get('/feed', verifyToken, async (req, res) => {
     try{
-        const feed = await Post.find();
-        if(!feed.length){
+        // pagination: ?page=1&limit=10 (defaults: page 1, limit 10)
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+
+        const total = await Post.countDocuments();
+        // sort newest first, then slice one page at a time
+        const feed = await Post.find()
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+
+        if(!feed.length && total === 0){
             // 'return' is needed so the res.status(200) below doesn't also run
             // (sending two responses = "Cannot set headers after they are sent").
             return res.status(404).json({
@@ -46,7 +57,11 @@ pst.get('/feed', verifyToken, async (req, res) => {
             });
         }
     return res.status(200).json({
-        feed
+        feed,
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit)
     });
     }   catch(err){
         res.status(501).json({
