@@ -11,6 +11,7 @@ import forgotRoute from './loginRoutes/forgotpass.js';
 import postRoute from './src/post.js';
 import liked from './src/like.js';
 import cmnt from './src/comments.js';
+import follow from './src/follow.js';
 
 const app = express();
 app.use(express.json());
@@ -41,3 +42,4 @@ app.use(forgotRoute);//forgot password route
 app.use(postRoute);//post and see post (by Post id and profile)
 app.use(liked);//likes on the post 
 app.use(cmnt);//commnets on the post
+app.use(follow);//follow/unfollow and see followers/following

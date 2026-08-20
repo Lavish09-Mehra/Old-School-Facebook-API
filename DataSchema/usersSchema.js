@@ -16,6 +16,14 @@ const userSchema = new mongoose.Schema({
     password: {
         type: String,
         required: true
+    },
+    followers: {
+        type: [String],
+        default: []
+    },
+    following: {
+        type: [String],
+        default: []
     }
 }, { timestamps: true });
 export const User = mongoose.model('User', userSchema, 'Users');

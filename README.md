@@ -17,6 +17,8 @@ Remember when Facebook was simple? A status box, a wall, and your friends' posts
 - **User Authentication** - signup, login, and JWT-based protected routes
 - **Password Security** - passwords hashed with `bcrypt` (12 salt rounds)
 - **Old-School Posts** - post statuses with hashtags and captions to a shared feed
+- **Likes & Comments** - like any post and drop a comment below it
+- **Follow System** - follow friends, unfollow them, and see your followers/following
 - **Personal Wall** - fetch any user's posts, or your own profile + posts
 - **Token Guard** - every post/profile route requires a valid `Bearer` token
 - **Mongoose ODM** - clean schema modeling with timestamps on every document
@@ -88,7 +90,7 @@ PORT=3000
 
 **Base URL:** `http://localhost:3000`
 
-All routes below `/create-post`, `/feed`, `/post-of/:username` and `/me` are **protected** - send your JWT in the `Authorization` header:
+All routes below `/create-post`, `/feed`, `/post-of/:username`, `/me`, `/follow`, `/following`, `/followers` and `/user/:username` are **protected** - send your JWT in the `Authorization` header:
 
 ```
 Authorization: Bearer <your-token>
@@ -106,6 +108,11 @@ Authorization: Bearer <your-token>
 | GET    | `/feed`                   | Yes  | Get every post on the platform           |
 | GET    | `/post-of/:username`      | Yes  | Get all posts by a specific user         |
 | GET    | `/me`                     | Yes  | Get your profile plus your own posts     |
+| POST   | `/follow/:username`       | Yes  | Follow another user                      |
+| DELETE | `/follow/:username`       | Yes  | Unfollow another user                    |
+| GET    | `/following`              | Yes  | List the users you follow                |
+| GET    | `/followers`              | Yes  | List your followers                      |
+| GET    | `/user/:username`         | Yes  | Get a user's public profile              |
 
 ---
 
@@ -297,6 +304,93 @@ Authorization: Bearer <your-token>
 }
 ```
 
+`myprofile` now also includes your `followers` and `following` arrays.
+
+### 9. Follow a User
+
+```http
+POST /follow/Rahul
+Authorization: Bearer <your-token>
+```
+
+**Response `200 OK`**
+
+```json
+{
+  "message": "You are now following Rahul..",
+  "follow": { "user": "Rahul" }
+}
+```
+
+**Errors:** `400` following yourself or already following | `404` user not found
+
+### 10. Unfollow a User
+
+```http
+DELETE /follow/Rahul
+Authorization: Bearer <your-token>
+```
+
+**Response `200 OK`**
+
+```json
+{
+  "message": "You unfollowed Rahul.."
+}
+```
+
+**Errors:** `400` not following this user | `404` user not found
+
+### 11. Who You Follow
+
+```http
+GET /following
+Authorization: Bearer <your-token>
+```
+
+**Response `200 OK`**
+
+```json
+{
+  "following": ["Rahul", "Sara"]
+}
+```
+
+### 12. Your Followers
+
+```http
+GET /followers
+Authorization: Bearer <your-token>
+```
+
+**Response `200 OK`**
+
+```json
+{
+  "followers": ["Sara"]
+}
+```
+
+### 13. Any User's Public Profile
+
+```http
+GET /user/Rahul
+Authorization: Bearer <your-token>
+```
+
+**Response `200 OK`** - public fields only (no email or password).
+
+```json
+{
+  "profile": {
+    "username": "Rahul",
+    "followers": ["Lavish"],
+    "following": [],
+    "createdAt": "2026-08-09T12:00:00.000Z"
+  }
+}
+```
+
 ---
 
 ## How Authentication Works (the whole flow)
@@ -330,14 +424,17 @@ User                         Server
 ```
 Old-School Facebook API/
 ├── DataSchema/
-│   ├── usersSchema.js        # User model (username, email, password)
-│   └── postShema.js          # Post model (username, post, hastags, caption)
+│   ├── usersSchema.js        # User model (username, email, password, followers, following)
+│   └── postShema.js          # Post model (username, post, hastags, caption, likes, comments)
 ├── loginRoutes/
 │   ├── signup.js             # POST /signup
 │   ├── login.js              # POST /login + verifyToken middleware
 │   └── forgotpass.js         # PUT /forgot-password
 ├── src/
-│   └── post.js               # Post routes (create, feed, user posts, /me)
+│   ├── post.js               # Post routes (create, feed, user posts, /me)
+│   ├── like.js               # Like routes (POST /post/:id/like)
+│   ├── comments.js           # Comment routes (POST /post/:id/comment)
+│   └── follow.js             # Follow routes (follow, unfollow, following, followers)
 ├── .env                      # Environment variables (gitignored)
 ├── .gitignore
 ├── package.json
@@ -373,11 +470,15 @@ curl http://localhost:3000/feed -H "Authorization: Bearer <TOKEN>"
 
 ## Roadmap
 
-- [ ] **Likes** - `POST /post/:id/like` (add your username to a post's likes)
-- [ ] **Comments** - `POST /post/:id/comment` and `DELETE /post/:id/comment/:commentId`
+- [x] **Likes** - `POST /post/:id/like` (add your username to a post's likes)
+- [x] **Comments** - `POST /post/:id/comment`
+- [x] **Follow System** - follow/unfollow users, list followers & following
 - [ ] **Delete Post** - `DELETE /post/:id` (owner only)
+- [ ] **Delete Comment** - `DELETE /post/:id/comment/:commentId`
+- [ ] **Unlike** - `DELETE /post/:id/like`
 - [ ] **Logout / token revocation**
-- [ ] Refactor likes/comments to store `ObjectId` references and use `populate()`
+- [ ] Refactor likes/comments/follows to store `ObjectId` references and use `populate()`
+- [ ] **Friend-only feed** - show posts only from people you follow
 - [ ] Dockerize the app
 
 ---
