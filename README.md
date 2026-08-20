@@ -106,6 +106,9 @@ Authorization: Bearer <your-token>
 | PUT    | `/forgot-password`        | Yes  | Update your password while logged in     |
 | POST   | `/create-post`            | Yes  | Publish a status to the feed             |
 | GET    | `/feed`                   | Yes  | Get every post on the platform           |
+| POST   | `/post/:id/like`          | Yes  | Like a post                              |
+| POST   | `/post/:id/comment`       | Yes  | Add a comment to a post                  |
+| DELETE | `/post/:id/comment/:commentId` | Yes | Delete your own comment              |
 | GET    | `/post-of/:username`      | Yes  | Get all posts by a specific user         |
 | GET    | `/me`                     | Yes  | Get your profile plus your own posts     |
 | POST   | `/follow/:username`       | Yes  | Follow another user                      |
@@ -399,6 +402,26 @@ Authorization: Bearer <your-token>
 }
 ```
 
+### 14. Delete a Comment
+
+```http
+DELETE /post/66c1.../comment/66c2...
+Authorization: Bearer <your-token>
+```
+
+Only the comment's author can delete it.
+
+**Response `200 OK`**
+
+```json
+{
+  "message": "Comment deleted..",
+  "updated": { ... }
+}
+```
+
+**Errors:** `404` post or comment not found | `403` not your comment
+
 ---
 
 ## How Authentication Works (the whole flow)
@@ -479,10 +502,9 @@ curl http://localhost:3000/feed -H "Authorization: Bearer <TOKEN>"
 ## Roadmap
 
 - [x] **Likes** - `POST /post/:id/like` (add your username to a post's likes)
-- [x] **Comments** - `POST /post/:id/comment`
+- [x] **Comments** - `POST /post/:id/comment` and `DELETE /post/:id/comment/:commentId`
 - [x] **Follow System** - follow/unfollow users, list followers & following
 - [ ] **Delete Post** - `DELETE /post/:id` (owner only)
-- [ ] **Delete Comment** - `DELETE /post/:id/comment/:commentId`
 - [ ] **Unlike** - `DELETE /post/:id/like`
 - [ ] **Logout / token revocation**
 - [ ] Refactor likes/comments/follows to store `ObjectId` references and use `populate()`
