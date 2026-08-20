@@ -1,5 +1,6 @@
 import express from 'express';
 const pst = express.Router();
+import mongoose from 'mongoose';
 
 // '../DataSchema/...' -> the '../' moves UP one folder (out of src/),
 // then into DataSchema. Keep the filename 'postShema.js' EXACTLY as on disk
@@ -100,6 +101,40 @@ pst.get('/me', verifyToken, async(req, res) => {
         res.status(404).json({
             message: 'No profile found..',
             err
+        });
+    }
+});
+
+// ---- DELETE POST (owner only) ----
+pst.delete('/post/:id', verifyToken, async(req, res) => {
+    try{
+        if(!mongoose.isValidObjectId(req.params.id)){
+            return res.status(404).json({
+                message: 'Post not found..'
+            });
+        }
+
+        const post = await Post.findById(req.params.id);
+        if(!post){
+            return res.status(404).json({
+                message: 'Post not found..'
+            });
+        }
+
+        // only the author of the post can delete it (username from the JWT)
+        if(post.username !== req.user.username){
+            return res.status(403).json({
+                message: 'You can only delete your own posts..'
+            });
+        }
+
+        await post.deleteOne();
+        return res.status(200).json({
+            message: 'Post deleted..'
+        });
+    }   catch(err){
+        res.status(500).json({
+            message: 'oops.. Something Went Wrong'
         });
     }
 });

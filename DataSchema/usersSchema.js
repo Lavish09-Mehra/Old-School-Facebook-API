@@ -24,6 +24,10 @@ const userSchema = new mongoose.Schema({
     following: {
         type: [String],
         default: []
+    },
+    tokenVersion: {
+        type: Number,
+        default: 0
     }
 }, { timestamps: true });
 export const User = mongoose.model('User', userSchema, 'Users');

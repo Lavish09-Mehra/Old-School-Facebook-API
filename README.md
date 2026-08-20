@@ -14,13 +14,14 @@ Remember when Facebook was simple? A status box, a wall, and your friends' posts
 
 ## Features
 
-- **User Authentication** - signup, login, and JWT-based protected routes
+- **User Authentication** - signup, login, logout, and JWT-based protected routes
 - **Password Security** - passwords hashed with `bcrypt` (12 salt rounds)
+- **Token Guard** - every post/profile route requires a valid `Bearer` token
+- **Token Revocation** - logging out instantly invalidates all of that user's tokens
 - **Old-School Posts** - post statuses with hashtags and captions to a shared feed
 - **Likes & Comments** - like any post and drop a comment below it
 - **Follow System** - follow friends, unfollow them, and see your followers/following
 - **Personal Wall** - fetch any user's posts, or your own profile + posts
-- **Token Guard** - every post/profile route requires a valid `Bearer` token
 - **Mongoose ODM** - clean schema modeling with timestamps on every document
 
 ## Tech Stack
@@ -104,8 +105,10 @@ Authorization: Bearer <your-token>
 | POST   | `/signup`                 | No   | Create a new account                     |
 | POST   | `/login`                  | No   | Log in and receive a JWT                 |
 | PUT    | `/forgot-password`        | Yes  | Update your password while logged in     |
+| POST   | `/logout`                 | Yes  | Log out and revoke your JWT              |
 | POST   | `/create-post`            | Yes  | Publish a status to the feed             |
 | GET    | `/feed`                   | Yes  | Get every post on the platform           |
+| DELETE | `/post/:id`               | Yes  | Delete your own post                     |
 | POST   | `/post/:id/like`          | Yes  | Like a post                              |
 | POST   | `/post/:id/comment`       | Yes  | Add a comment to a post                  |
 | DELETE | `/post/:id/comment/:commentId` | Yes | Delete your own comment              |
@@ -422,6 +425,44 @@ Only the comment's author can delete it.
 
 **Errors:** `404` post or comment not found | `403` not your comment
 
+### 15. Delete a Post
+
+```http
+DELETE /post/66c1...
+Authorization: Bearer <your-token>
+```
+
+Only the post's author can delete it.
+
+**Response `200 OK`**
+
+```json
+{
+  "message": "Post deleted.."
+}
+```
+
+**Errors:** `404` post not found | `403` not your post
+
+### 16. Log Out
+
+```http
+POST /logout
+Authorization: Bearer <your-token>
+```
+
+Logging out bumps your `tokenVersion` in the database. Every JWT you own
+(including the one used for this call) becomes invalid immediately - a new
+login issues a fresh token.
+
+**Response `200 OK`**
+
+```json
+{
+  "message": "Logged out Successfully.."
+}
+```
+
 ---
 
 ## How Authentication Works (the whole flow)
@@ -446,7 +487,7 @@ User                         Server
  │◄─────────────────────────────┤
 ```
 
-`verifyToken` (defined in `loginRoutes/login.js`) checks for a `Bearer` token in the `Authorization` header, verifies it against `JWT_SECRET`, and attaches the decoded payload to `req.user` for the route handler to use.
+`verifyToken` (defined in `loginRoutes/login.js`) checks for a `Bearer` token in the `Authorization` header, verifies it against `JWT_SECRET`, confirms the token's `tokenVersion` still matches the user in the database (so revoked tokens die instantly), and attaches the decoded payload to `req.user` for the route handler to use.
 
 ---
 
@@ -504,9 +545,9 @@ curl http://localhost:3000/feed -H "Authorization: Bearer <TOKEN>"
 - [x] **Likes** - `POST /post/:id/like` (add your username to a post's likes)
 - [x] **Comments** - `POST /post/:id/comment` and `DELETE /post/:id/comment/:commentId`
 - [x] **Follow System** - follow/unfollow users, list followers & following
-- [ ] **Delete Post** - `DELETE /post/:id` (owner only)
+- [x] **Delete Posts** - `DELETE /post/:id` (owner only)
+- [x] **Logout / token revocation** - `POST /logout` bumps `tokenVersion`
 - [ ] **Unlike** - `DELETE /post/:id/like`
-- [ ] **Logout / token revocation**
 - [ ] Refactor likes/comments/follows to store `ObjectId` references and use `populate()`
 - [ ] **Friend-only feed** - show posts only from people you follow
 - [ ] Dockerize the app
